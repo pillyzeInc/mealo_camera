@@ -4,6 +4,7 @@
 
 #import "./include/camera_avfoundation/FLTSavePhotoDelegate.h"
 #import "./include/camera_avfoundation/FLTSavePhotoDelegate_Test.h"
+#import <webp/encode.h>
 
 @interface FLTSavePhotoDelegate ()
 /// The file path for the captured photo.
@@ -96,9 +97,9 @@
     NSTimeInterval processTime = [[NSDate date] timeIntervalSinceDate:processStartTime];
     NSLog(@"2. 이미지 처리: %.3f초", processTime);
     
-    // 3. JPEG 압축 및 저장
+    // 3. WebP 압축 및 저장
     NSDate *saveStartTime = [NSDate date];
-    NSData *finalData = UIImageJPEGRepresentation(finalImage, 0.8);
+    NSData *finalData = [self convertImageToWebP:finalImage quality:0.8];
     NSError *ioError;
     if ([finalData writeToFile:strongSelf.path options:NSDataWritingAtomic error:&ioError]) {
         NSTimeInterval saveTime = [[NSDate date] timeIntervalSinceDate:saveStartTime];
@@ -129,5 +130,40 @@
  API_AVAILABLE(ios(10.0)){
      AudioServicesDisposeSystemSoundID(1108);
  }
+
+- (NSData *)convertImageToWebP:(UIImage *)image quality:(CGFloat)quality {
+    CGImageRef cgImage = image.CGImage;
+    if (!cgImage) {
+        return nil;
+    }
+    
+    size_t width = CGImageGetWidth(cgImage);
+    size_t height = CGImageGetHeight(cgImage);
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate(NULL, width, height, 8, width * 4, colorSpace, kCGImageAlphaPremultipliedLast);
+    CGColorSpaceRelease(colorSpace);
+    
+    if (!context) {
+        return nil;
+    }
+    
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
+    uint8_t *data = (uint8_t *)CGBitmapContextGetData(context);
+    
+    uint8_t *output;
+    size_t outputSize = WebPEncodeRGBA(data, (int)width, (int)height, (int)(width * 4), quality * 100, &output);
+    
+    CGContextRelease(context);
+    
+    if (outputSize == 0) {
+        return nil;
+    }
+    
+    NSData *webpData = [NSData dataWithBytes:output length:outputSize];
+    WebPFree(output);
+    
+    return webpData;
+}
  
 @end
