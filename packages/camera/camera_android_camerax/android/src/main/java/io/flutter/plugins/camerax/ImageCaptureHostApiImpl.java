@@ -33,7 +33,7 @@ public class ImageCaptureHostApiImpl implements ImageCaptureHostApi {
   private SystemServicesFlutterApiImpl systemServicesFlutterApiImpl;
 
   public static final String TEMPORARY_FILE_NAME = "CAP";
-  public static final String JPG_FILE_TYPE = ".jpg";
+  public static final String WEBP_FILE_TYPE = ".webp";
 
   @VisibleForTesting public @NonNull CameraXProxy cameraXProxy = new CameraXProxy();
 
@@ -102,7 +102,7 @@ public class ImageCaptureHostApiImpl implements ImageCaptureHostApi {
     final File outputDir = context.getCacheDir();
     File temporaryCaptureFile;
     try {
-      temporaryCaptureFile = File.createTempFile(TEMPORARY_FILE_NAME, JPG_FILE_TYPE, outputDir);
+      temporaryCaptureFile = File.createTempFile(TEMPORARY_FILE_NAME, WEBP_FILE_TYPE, outputDir);
     } catch (IOException | SecurityException e) {
       result.error(e);
       return;
@@ -172,7 +172,7 @@ public class ImageCaptureHostApiImpl implements ImageCaptureHostApi {
 
           // 6. 저장
           FileOutputStream out = new FileOutputStream(file);
-          resized.compress(Bitmap.CompressFormat.JPEG, 100, out);
+          resized.compress(Bitmap.CompressFormat.WEBP, 100, out);
           out.flush();
           out.close();
 
