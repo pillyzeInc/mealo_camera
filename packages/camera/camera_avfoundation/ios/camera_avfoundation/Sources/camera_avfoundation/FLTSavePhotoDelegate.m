@@ -4,7 +4,7 @@
 
 #import "./include/camera_avfoundation/FLTSavePhotoDelegate.h"
 #import "./include/camera_avfoundation/FLTSavePhotoDelegate_Test.h"
-#import <webp/encode.h>
+#import "WebPEncoder.h"
 
 @interface FLTSavePhotoDelegate ()
 /// The file path for the captured photo.
@@ -15,45 +15,16 @@
 
 @implementation FLTSavePhotoDelegate
 
-// WebP 인코딩 헬퍼 메소드
-- (NSData *)encodeImageToWebP:(UIImage *)image quality:(float)quality {
-    CGImageRef cgImage = image.CGImage;
-    if (!cgImage) return nil;
-    
-    size_t width = CGImageGetWidth(cgImage);
-    size_t height = CGImageGetHeight(cgImage);
-    
-    // RGBA 형식으로 비트맵 데이터 생성
-    size_t bytesPerRow = 4 * width;
-    size_t bitmapSize = bytesPerRow * height;
-    uint8_t *bitmapData = (uint8_t *)malloc(bitmapSize);
-    if (!bitmapData) return nil;
-    
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(bitmapData, width, height, 8, bytesPerRow,
-                                                colorSpace, kCGImageAlphaPremultipliedLast);
-    CGColorSpaceRelease(colorSpace);
-    
-    if (!context) {
-        free(bitmapData);
-        return nil;
+// Embedded WebP encoding helper method
+- (NSData *)encodeImageToOptimizedFormat:(UIImage *)image quality:(float)quality {
+    // Use embedded WebP encoder
+    NSData *webpData = [WebPEncoder encodeImage:image quality:quality];
+    if (webpData) {
+        return webpData;
     }
     
-    CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
-    CGContextRelease(context);
-    
-    // WebP 인코딩
-    uint8_t *webpData;
-    size_t webpSize = WebPEncodeRGBA(bitmapData, (int)width, (int)height, (int)bytesPerRow, quality * 100, &webpData);
-    
-    free(bitmapData);
-    
-    if (webpSize == 0 || !webpData) return nil;
-    
-    NSData *result = [NSData dataWithBytes:webpData length:webpSize];
-    WebPFree(webpData);
-    
-    return result;
+    // Fallback to JPEG if WebP encoding fails
+    return UIImageJPEGRepresentation(image, quality);
 }
 
 - (instancetype)initWithPath:(NSString *)path
@@ -140,7 +111,7 @@
     
     // 3. WebP 압축 및 저장
     NSDate *saveStartTime = [NSDate date];
-    NSData *finalData = [strongSelf encodeImageToWebP:finalImage quality:0.8];
+    NSData *finalData = [strongSelf encodeImageToOptimizedFormat:finalImage quality:0.8];
     if (!finalData) {
         strongSelf.completionHandler(nil, [NSError errorWithDomain:@"FLTSavePhotoDelegate" 
                                                              code:-1 
