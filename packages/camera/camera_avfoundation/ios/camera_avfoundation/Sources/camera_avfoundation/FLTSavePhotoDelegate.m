@@ -4,7 +4,7 @@
 
 #import "./include/camera_avfoundation/FLTSavePhotoDelegate.h"
 #import "./include/camera_avfoundation/FLTSavePhotoDelegate_Test.h"
-#import <webp/encode.h>
+#import <SDWebImageWebPCoder/SDWebImageWebPCoder.h>
 
 @interface FLTSavePhotoDelegate ()
 /// The file path for the captured photo.
@@ -132,36 +132,13 @@
  }
 
 - (NSData *)convertImageToWebP:(UIImage *)image quality:(CGFloat)quality {
-    CGImageRef cgImage = image.CGImage;
-    if (!cgImage) {
-        return nil;
-    }
+    SDImageWebPCoder *webpCoder = [[SDImageWebPCoder alloc] init];
     
-    size_t width = CGImageGetWidth(cgImage);
-    size_t height = CGImageGetHeight(cgImage);
+    NSDictionary *options = @{
+        SDImageCoderEncodeCompressionQuality: @(quality)
+    };
     
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(NULL, width, height, 8, width * 4, colorSpace, kCGImageAlphaPremultipliedLast);
-    CGColorSpaceRelease(colorSpace);
-    
-    if (!context) {
-        return nil;
-    }
-    
-    CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
-    uint8_t *data = (uint8_t *)CGBitmapContextGetData(context);
-    
-    uint8_t *output;
-    size_t outputSize = WebPEncodeRGBA(data, (int)width, (int)height, (int)(width * 4), quality * 100, &output);
-    
-    CGContextRelease(context);
-    
-    if (outputSize == 0) {
-        return nil;
-    }
-    
-    NSData *webpData = [NSData dataWithBytes:output length:outputSize];
-    WebPFree(output);
+    NSData *webpData = [webpCoder encodedDataWithImage:image format:SDImageFormatWebP options:options];
     
     return webpData;
 }
