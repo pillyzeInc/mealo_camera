@@ -100,13 +100,17 @@
     // 3. WebP 압축 및 저장
     NSDate *saveStartTime = [NSDate date];
     NSData *finalData = [self convertImageToWebP:finalImage quality:0.8];
+    
+    // 파일 확장자를 .webp로 변경
+    NSString *webpPath = [[strongSelf.path stringByDeletingPathExtension] stringByAppendingPathExtension:@"webp"];
+    
     NSError *ioError;
-    if ([finalData writeToFile:strongSelf.path options:NSDataWritingAtomic error:&ioError]) {
+    if ([finalData writeToFile:webpPath options:NSDataWritingAtomic error:&ioError]) {
         NSTimeInterval saveTime = [[NSDate date] timeIntervalSinceDate:saveStartTime];
         NSTimeInterval totalTime = [[NSDate date] timeIntervalSinceDate:totalStartTime];
         NSLog(@"3. 파일 저장: %.3f초", saveTime);
         NSLog(@"총 소요 시간: %.3f초", totalTime);
-        strongSelf.completionHandler(self.path, nil);
+        strongSelf.completionHandler(webpPath, nil);
     } else {
         strongSelf.completionHandler(nil, ioError);
     }
