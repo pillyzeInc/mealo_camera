@@ -17,7 +17,6 @@ A Flutter plugin to use the camera from your Flutter app.
   s.public_header_files = 'camera_avfoundation/Sources/camera_avfoundation/include/**/*.h'
   s.module_map = 'camera_avfoundation/Sources/camera_avfoundation/include/CameraPlugin.modulemap'
   s.dependency 'Flutter'
-  s.dependency 'libwebp'
 
   s.platform = :ios, '12.0'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }

@@ -14,15 +14,11 @@ let package = Package(
   products: [
     .library(name: "camera-avfoundation", targets: ["camera_avfoundation"])
   ],
-  dependencies: [
-    .package(url: "https://github.com/SDWebImage/libwebp-Xcode.git", from: "1.3.2")
-  ],
+  dependencies: [],
   targets: [
     .target(
       name: "camera_avfoundation",
-      dependencies: [
-        .product(name: "libwebp", package: "libwebp-Xcode")
-      ],
+      dependencies: [],
       exclude: ["include/camera_avfoundation-umbrella.h", "include/CameraPlugin.modulemap"],
       resources: [
         .process("Resources")
