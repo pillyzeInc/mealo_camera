@@ -1,6 +1,17 @@
 ## NEXT
 
+* Updates minimum supported SDK version to Flutter 3.29/Dart 3.7.
+* Fixes integration test button text matcher to work on iOS 26.
+
+## 6.3.4
+
+* Updates to Pigeon 25.5.0.
+* Updates minimum supported SDK version to Flutter 3.27/Dart 3.6.
+
+## 6.3.3
+
 * Updates minimum supported SDK version to Flutter 3.22/Dart 3.4.
+* Ensures the completion callback is invoked if the user dismisses the Safari view before the initial URL load completes.
 
 ## 6.3.2
 

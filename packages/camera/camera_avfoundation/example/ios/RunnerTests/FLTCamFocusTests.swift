@@ -7,15 +7,20 @@ import XCTest
 
 @testable import camera_avfoundation
 
+// Import Objective-C part of the implementation when SwiftPM is used.
+#if canImport(camera_avfoundation_objc)
+  import camera_avfoundation_objc
+#endif
+
 final class FLTCamSetFocusModeTests: XCTestCase {
-  private func createCamera() -> (FLTCam, MockCaptureDevice, MockDeviceOrientationProvider) {
+  private func createCamera() -> (Camera, MockCaptureDevice, MockDeviceOrientationProvider) {
     let mockDevice = MockCaptureDevice()
     let mockDeviceOrientationProvider = MockDeviceOrientationProvider()
 
-    let configuration = FLTCreateTestCameraConfiguration()
-    configuration.captureDeviceFactory = { mockDevice }
+    let configuration = CameraTestUtils.createTestCameraConfiguration()
+    configuration.captureDeviceFactory = { _ in mockDevice }
     configuration.deviceOrientationProvider = mockDeviceOrientationProvider
-    let camera = FLTCreateCamWithConfiguration(configuration)
+    let camera = CameraTestUtils.createTestCamera(configuration)
 
     return (camera, mockDevice, mockDeviceOrientationProvider)
   }
@@ -122,9 +127,9 @@ final class FLTCamSetFocusModeTests: XCTestCase {
   func testSetFocusPointWithResult_SetsFocusPointOfInterest() {
     let (camera, mockDevice, mockDeviceOrientationProvider) = createCamera()
     // UI is currently in landscape left orientation.
-    mockDeviceOrientationProvider.orientation = .landscapeLeft
+    mockDeviceOrientationProvider.orientationStub = { .landscapeLeft }
     // Focus point of interest is supported.
-    mockDevice.focusPointOfInterestSupported = true
+    mockDevice.isFocusPointOfInterestSupported = true
 
     var setFocusPointOfInterestCalled = false
     mockDevice.setFocusPointOfInterestStub = { point in
@@ -143,9 +148,9 @@ final class FLTCamSetFocusModeTests: XCTestCase {
   func testSetFocusPoint_WhenNotSupported_ReturnsError() {
     let (camera, mockDevice, mockDeviceOrientationProvider) = createCamera()
     // UI is currently in landscape left orientation.
-    mockDeviceOrientationProvider.orientation = .landscapeLeft
+    mockDeviceOrientationProvider.orientationStub = { .landscapeLeft }
     // Focus point of interest is not supported.
-    mockDevice.focusPointOfInterestSupported = false
+    mockDevice.isFocusPointOfInterestSupported = false
 
     let expectation = self.expectation(description: "Completion with error")
 
